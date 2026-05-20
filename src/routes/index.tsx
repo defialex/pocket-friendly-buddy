@@ -1,26 +1,75 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useExpenses } from "@/lib/budget-store";
+import { Sidebar } from "@/components/budget/Sidebar";
+import { StatStrip } from "@/components/budget/StatStrip";
+import { AddExpense } from "@/components/budget/AddExpense";
+import { CategoryBreakdown } from "@/components/budget/CategoryBreakdown";
+import { TransactionList } from "@/components/budget/TransactionList";
 
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "The Ledger — A quiet budget journal" },
+      {
+        name: "description",
+        content:
+          "An editorial-style personal budget app. Track expenses by category with a calm, paper-and-ink interface.",
+      },
+      { property: "og:title", content: "The Ledger — A quiet budget journal" },
+      {
+        property: "og:description",
+        content: "Track expenses by category in a calm, editorial interface.",
+      },
+    ],
+  }),
+  component: Dashboard,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Dashboard() {
+  const { expenses, add, remove } = useExpenses();
+  const now = new Date();
+  const monthName = now.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen flex">
+      <Sidebar />
+
+      <main className="flex-1 min-w-0">
+        <header className="px-6 md:px-12 pt-10 pb-8 border-b border-foreground/20">
+          <div className="flex items-baseline justify-between flex-wrap gap-4">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                Vol. I · {monthName}
+              </div>
+              <h2 className="font-serif text-5xl md:text-6xl mt-3 leading-none">
+                Dashboard
+              </h2>
+              <p className="font-serif italic text-muted-foreground mt-3 max-w-xl">
+                A faithful account of expenditures, kept as one would keep a diary.
+              </p>
+            </div>
+            <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground text-right">
+              <div>folio · 01</div>
+              <div className="mt-1">printed daily</div>
+            </div>
+          </div>
+        </header>
+
+        <div className="px-6 md:px-12 py-8 space-y-8">
+          <StatStrip expenses={expenses} />
+          <AddExpense onAdd={add} />
+
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr] gap-8">
+            <TransactionList expenses={expenses} onRemove={remove} />
+            <CategoryBreakdown expenses={expenses} />
+          </div>
+
+          <footer className="pt-8 border-t border-foreground/20 flex items-baseline justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            <span>— end of folio —</span>
+            <span>The Ledger · est. 2026</span>
+          </footer>
+        </div>
+      </main>
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
