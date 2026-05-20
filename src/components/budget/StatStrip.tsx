@@ -4,18 +4,15 @@ export function StatStrip({ expenses }: { expenses: Expense[] }) {
   const now = new Date();
   const month = now.toISOString().slice(0, 7);
   const thisMonth = expenses.filter((e) => e.date.startsWith(month));
-  const total = thisMonth.reduce((s, e) => s + e.amount, 0);
-  const count = thisMonth.length;
-  const avg = count ? total / count : 0;
-
-  const today = now.toISOString().slice(0, 10);
-  const todayTotal = expenses.filter((e) => e.date === today).reduce((s, e) => s + e.amount, 0);
+  const income = thisMonth.filter((e) => e.kind === "income").reduce((s, e) => s + e.amount, 0);
+  const spent = thisMonth.filter((e) => e.kind === "expense").reduce((s, e) => s + e.amount, 0);
+  const net = income - spent;
 
   const stats = [
-    { label: "Spent this month", value: formatMoney(total), accent: true },
-    { label: "Entries", value: String(count) },
-    { label: "Avg. per entry", value: formatMoney(avg) },
-    { label: "Today", value: formatMoney(todayTotal) },
+    { label: "Income · month", value: formatMoney(income) },
+    { label: "Spent · month", value: formatMoney(spent), accent: true },
+    { label: "Net", value: (net >= 0 ? "+" : "−") + formatMoney(Math.abs(net)) },
+    { label: "Entries", value: String(thisMonth.length) },
   ];
 
   return (

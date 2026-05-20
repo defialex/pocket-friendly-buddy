@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useExpenses } from "@/lib/budget-store";
 import { Sidebar } from "@/components/budget/Sidebar";
 import { StatStrip } from "@/components/budget/StatStrip";
@@ -13,12 +14,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "An editorial-style personal budget app. Track expenses by category with a calm, paper-and-ink interface.",
+          "An editorial-style personal budget app. Track income and expenses by category in a calm, paper-and-ink interface.",
       },
       { property: "og:title", content: "The Ledger — A quiet budget journal" },
       {
         property: "og:description",
-        content: "Track expenses by category in a calm, editorial interface.",
+        content: "Track income and expenses by category in a calm, editorial interface.",
       },
     ],
   }),
@@ -26,9 +27,18 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
-  const { expenses, add, remove } = useExpenses();
-  const now = new Date();
-  const monthName = now.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  const { expenses, add, remove, update } = useExpenses();
+  const [monthName, setMonthName] = useState("");
+
+  useEffect(() => {
+    setMonthName(
+      new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+    );
+  }, []);
+
+  const recent = [...expenses]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 8);
 
   return (
     <div className="min-h-screen flex">
@@ -38,14 +48,15 @@ function Dashboard() {
         <header className="px-6 md:px-12 pt-10 pb-8 border-b border-foreground/20">
           <div className="flex items-baseline justify-between flex-wrap gap-4">
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-                Vol. I · {monthName}
+              <div
+                className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground"
+                suppressHydrationWarning
+              >
+                Vol. I · {monthName || "\u00a0"}
               </div>
-              <h2 className="font-serif text-5xl md:text-6xl mt-3 leading-none">
-                Dashboard
-              </h2>
+              <h2 className="font-serif text-5xl md:text-6xl mt-3 leading-none">Dashboard</h2>
               <p className="font-serif italic text-muted-foreground mt-3 max-w-xl">
-                A faithful account of expenditures, kept as one would keep a diary.
+                A faithful account of income and expenditure, kept as one would keep a diary.
               </p>
             </div>
             <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground text-right">
@@ -60,8 +71,13 @@ function Dashboard() {
           <AddExpense onAdd={add} />
 
           <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr] gap-8">
-            <TransactionList expenses={expenses} onRemove={remove} />
-            <CategoryBreakdown expenses={expenses} />
+            <TransactionList
+              expenses={recent}
+              onRemove={remove}
+              onUpdate={update}
+              title="Recent Entries"
+            />
+            <CategoryBreakdown expenses={expenses} kind="expense" />
           </div>
 
           <footer className="pt-8 border-t border-foreground/20 flex items-baseline justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">

@@ -1,28 +1,52 @@
 import { useState } from "react";
-import { CATEGORIES, type Category, type Expense } from "@/lib/budget-store";
+import {
+  categoriesFor,
+  EXPENSE_CATEGORIES,
+  INCOME_CATEGORIES,
+  type Category,
+  type Expense,
+  type TxKind,
+} from "@/lib/budget-store";
 
 export function AddExpense({ onAdd }: { onAdd: (e: Omit<Expense, "id">) => void }) {
+  const [kind, setKind] = useState<TxKind>("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<Category>("Groceries");
   const [note, setNote] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
+  const switchKind = (next: TxKind) => {
+    setKind(next);
+    setCategory(next === "income" ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
+  };
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const n = parseFloat(amount);
     if (!n || n <= 0) return;
-    onAdd({ amount: n, category, note: note.trim() || category, date });
+    onAdd({ amount: n, category, note: note.trim() || String(category), date, kind });
     setAmount("");
     setNote("");
   };
 
   return (
     <form onSubmit={submit} className="border border-foreground/20 bg-card p-6">
-      <div className="flex items-baseline justify-between mb-5">
+      <div className="flex items-baseline justify-between mb-5 gap-4 flex-wrap">
         <h3 className="font-serif text-xl">New Entry</h3>
-        <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          § Ledger
-        </span>
+        <div className="flex border border-foreground/30">
+          {(["expense", "income"] as TxKind[]).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => switchKind(k)}
+              className={`font-mono text-[10px] uppercase tracking-widest px-3 py-1.5 transition-colors ${
+                kind === k ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {k === "expense" ? "− Expense" : "+ Income"}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="rule mb-5" />
 
@@ -57,7 +81,7 @@ export function AddExpense({ onAdd }: { onAdd: (e: Omit<Expense, "id">) => void 
             value={note}
             onChange={(e) => setNote(e.target.value)}
             maxLength={80}
-            placeholder="What was it for?"
+            placeholder={kind === "income" ? "Source of funds?" : "What was it for?"}
             className="w-full bg-transparent border-b border-foreground/30 focus:border-foreground outline-none font-serif italic text-base py-1"
           />
         </Field>
@@ -68,7 +92,7 @@ export function AddExpense({ onAdd }: { onAdd: (e: Omit<Expense, "id">) => void 
             onChange={(e) => setCategory(e.target.value as Category)}
             className="w-full bg-transparent border-b border-foreground/30 focus:border-foreground outline-none font-mono text-xs uppercase tracking-wider py-1"
           >
-            {CATEGORIES.map((c) => (
+            {categoriesFor(kind).map((c) => (
               <option key={c} value={c}>
                 {c}
               </option>
