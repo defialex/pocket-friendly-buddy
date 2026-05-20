@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  categoriesFor,
-  formatMoney,
-  type Category,
-  type Expense,
-  type TxKind,
-} from "@/lib/budget-store";
+import { formatMoney, type Expense } from "@/lib/budget-store";
 import { EditTransactionDialog } from "./EditTransactionDialog";
 
 export function TransactionList({
