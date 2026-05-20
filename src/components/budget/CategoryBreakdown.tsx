@@ -1,10 +1,27 @@
-import { CATEGORIES, formatMoney, type Expense } from "@/lib/budget-store";
+import {
+  EXPENSE_CATEGORIES,
+  INCOME_CATEGORIES,
+  formatMoney,
+  type Category,
+  type Expense,
+  type TxKind,
+} from "@/lib/budget-store";
 
-export function CategoryBreakdown({ expenses }: { expenses: Expense[] }) {
-  const totals = CATEGORIES.map((c) => ({
-    category: c,
-    total: expenses.filter((e) => e.category === c).reduce((s, e) => s + e.amount, 0),
-  }))
+export function CategoryBreakdown({
+  expenses,
+  kind = "expense",
+}: {
+  expenses: Expense[];
+  kind?: TxKind;
+}) {
+  const cats: readonly Category[] = kind === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  const filtered = expenses.filter((e) => e.kind === kind);
+
+  const totals = cats
+    .map((c) => ({
+      category: c,
+      total: filtered.filter((e) => e.category === c).reduce((s, e) => s + e.amount, 0),
+    }))
     .filter((x) => x.total > 0)
     .sort((a, b) => b.total - a.total);
 
@@ -14,9 +31,11 @@ export function CategoryBreakdown({ expenses }: { expenses: Expense[] }) {
   return (
     <section className="border border-foreground/20 bg-card p-6">
       <div className="flex items-baseline justify-between mb-5">
-        <h3 className="font-serif text-xl">By Category</h3>
+        <h3 className="font-serif text-xl">
+          {kind === "income" ? "Income by Source" : "Spending by Category"}
+        </h3>
         <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          this month
+          {kind}
         </span>
       </div>
       <div className="rule mb-5" />
