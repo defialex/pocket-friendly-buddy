@@ -43,20 +43,21 @@ function ReportsPage() {
   ];
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen lg:flex">
       <Sidebar />
       <main className="flex-1 min-w-0">
-        <header className="px-6 md:px-12 pt-10 pb-8 border-b border-foreground/20">
+        <header className="px-5 md:px-12 pt-8 md:pt-10 pb-6 md:pb-8 border-b border-foreground/20">
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
             Vol. III · Almanack
           </div>
-          <h2 className="font-serif text-5xl md:text-6xl mt-3 leading-none">Reports</h2>
+          <h2 className="font-serif text-4xl md:text-6xl mt-3 leading-none">Reports</h2>
           <p className="font-serif italic text-muted-foreground mt-3 max-w-xl">
             A panoramic view of money as it comes and goes through the months.
           </p>
         </header>
 
-        <div className="px-6 md:px-12 py-8 space-y-8">
+        <div className="px-5 md:px-12 py-6 md:py-8 space-y-6 md:space-y-8">
+
           <section className="grid grid-cols-2 md:grid-cols-4 border border-foreground/20 bg-card divide-x divide-foreground/15">
             {summary.map((s) => (
               <div key={s.label} className="p-6">

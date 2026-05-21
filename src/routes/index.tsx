@@ -41,11 +41,11 @@ function Dashboard() {
     .slice(0, 8);
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen lg:flex">
       <Sidebar />
 
       <main className="flex-1 min-w-0">
-        <header className="px-6 md:px-12 pt-10 pb-8 border-b border-foreground/20">
+        <header className="px-5 md:px-12 pt-8 md:pt-10 pb-6 md:pb-8 border-b border-foreground/20">
           <div className="flex items-baseline justify-between flex-wrap gap-4">
             <div>
               <div
@@ -54,7 +54,7 @@ function Dashboard() {
               >
                 Vol. I · {monthName || "\u00a0"}
               </div>
-              <h2 className="font-serif text-5xl md:text-6xl mt-3 leading-none">Dashboard</h2>
+              <h2 className="font-serif text-4xl md:text-6xl mt-3 leading-none">Dashboard</h2>
               <p className="font-serif italic text-muted-foreground mt-3 max-w-xl">
                 A faithful account of income and expenditure, kept as one would keep a diary.
               </p>
@@ -66,11 +66,11 @@ function Dashboard() {
           </div>
         </header>
 
-        <div className="px-6 md:px-12 py-8 space-y-8">
+        <div className="px-5 md:px-12 py-6 md:py-8 space-y-6 md:space-y-8">
           <StatStrip expenses={expenses} />
           <AddExpense onAdd={add} />
 
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr] gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-[1fr_1fr] gap-6 md:gap-8">
             <TransactionList
               expenses={recent}
               onRemove={remove}
