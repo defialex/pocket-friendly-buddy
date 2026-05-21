@@ -155,11 +155,6 @@ const unsubscribe = onSnapshot(categoriesRef, async (snapshot) => {
     ...(d.data() as Omit<CategoryDef, "id">),
   }));
 
-  if (items.length === 0) {
-    await seedDefaultCategoriesOnce();
-    return;
-  }
-
   setCategories(items);
 });
     return () => unsubscribe();
