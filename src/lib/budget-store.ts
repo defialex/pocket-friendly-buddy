@@ -149,17 +149,19 @@ export function useCategories() {
   const [categories, setCategories] = useState<CategoryDef[]>([]);
 
   useEffect(() => {
-    seedDefaultCategoriesOnce();
+const unsubscribe = onSnapshot(categoriesRef, async (snapshot) => {
+  const items = snapshot.docs.map((d) => ({
+    id: d.id,
+    ...(d.data() as Omit<CategoryDef, "id">),
+  }));
 
-    const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
-      const items = snapshot.docs.map((d) => ({
-        id: d.id,
-        ...(d.data() as Omit<CategoryDef, "id">),
-      }));
+  if (items.length === 0) {
+    await seedDefaultCategoriesOnce();
+    return;
+  }
 
-      setCategories(items);
-    });
-
+  setCategories(items);
+});
     return () => unsubscribe();
   }, []);
 
