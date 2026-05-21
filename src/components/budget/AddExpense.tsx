@@ -1,36 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  categoriesFor,
-  EXPENSE_CATEGORIES,
-  INCOME_CATEGORIES,
-  type Category,
+  useCategories,
   type Expense,
   type TxKind,
 } from "@/lib/budget-store";
 
 export function AddExpense({ onAdd }: { onAdd: (e: Omit<Expense, "id">) => void }) {
+  const { categories } = useCategories();
   const [kind, setKind] = useState<TxKind>("expense");
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<Category>("Groceries");
+  const [category, setCategory] = useState<string>("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
-  const switchKind = (next: TxKind) => {
-    setKind(next);
-    setCategory(next === "income" ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
-  };
+  const list = categories.filter((c) => c.kind === kind);
+
+  // ensure category selection is valid
+  useEffect(() => {
+    if (list.length === 0) { setCategory(""); return; }
+    if (!list.some((c) => c.name === category)) setCategory(list[0].name);
+  }, [list, category]);
+
+  const switchKind = (next: TxKind) => setKind(next);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const n = parseFloat(amount);
-    if (!n || n <= 0) return;
-    onAdd({ amount: n, category, note: note.trim() || String(category), date, kind });
+    if (!n || n <= 0 || !category) return;
+    onAdd({ amount: n, category, note: note.trim() || category, date, kind });
     setAmount("");
     setNote("");
   };
 
+  const selectedColor = list.find((c) => c.name === category)?.color ?? "#2d2d2d";
+
   return (
-    <form onSubmit={submit} className="border border-foreground/20 bg-card p-6">
+    <form onSubmit={submit} className="border border-foreground/20 bg-card p-5 md:p-6">
       <div className="flex items-baseline justify-between mb-5 gap-4 flex-wrap">
         <h3 className="font-serif text-xl">New Entry</h3>
         <div className="flex border border-foreground/30">
@@ -50,12 +55,13 @@ export function AddExpense({ onAdd }: { onAdd: (e: Omit<Expense, "id">) => void 
       </div>
       <div className="rule mb-5" />
 
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_2fr_auto] gap-4 items-end">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_2fr_auto] gap-4 md:items-end">
         <Field label="Amount">
           <div className="flex items-baseline gap-1">
             <span className="font-serif text-lg">$</span>
             <input
               type="number"
+              inputMode="decimal"
               step="0.01"
               required
               value={amount}
@@ -87,24 +93,31 @@ export function AddExpense({ onAdd }: { onAdd: (e: Omit<Expense, "id">) => void 
         </Field>
 
         <Field label="Category">
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value as Category)}
-            className="w-full bg-transparent border-b border-foreground/30 focus:border-foreground outline-none font-mono text-xs uppercase tracking-wider py-1"
-          >
-            {categoriesFor(kind).map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+          <div className="flex items-center gap-2 border-b border-foreground/30 focus-within:border-foreground py-1">
+            <span
+              aria-hidden
+              className="inline-block w-3 h-3 rounded-full shrink-0"
+              style={{ background: selectedColor }}
+            />
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full bg-transparent outline-none font-mono text-xs uppercase tracking-wider appearance-none"
+            >
+              {list.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </Field>
       </div>
 
       <div className="mt-6 flex justify-end">
         <button
           type="submit"
-          className="font-mono text-xs uppercase tracking-[0.2em] px-6 py-3 bg-foreground text-background hover:bg-foreground/80 transition-colors"
+          className="w-full md:w-auto font-mono text-xs uppercase tracking-[0.2em] px-6 py-3 bg-foreground text-background hover:bg-foreground/80 transition-colors"
         >
           Record Entry →
         </button>

@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  categoriesFor,
-  EXPENSE_CATEGORIES,
-  INCOME_CATEGORIES,
-  type Category,
+  useCategories,
   type Expense,
   type TxKind,
 } from "@/lib/budget-store";
@@ -23,9 +20,10 @@ export function EditTransactionDialog({
   onClose: () => void;
   onSave: (patch: Partial<Omit<Expense, "id">>) => void;
 }) {
+  const { categories } = useCategories();
   const [kind, setKind] = useState<TxKind>("expense");
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<Category>("Groceries");
+  const [category, setCategory] = useState<string>("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState("");
 
@@ -38,20 +36,24 @@ export function EditTransactionDialog({
     setDate(expense.date);
   }, [expense]);
 
+  const list = categories.filter((c) => c.kind === kind);
+
   const switchKind = (next: TxKind) => {
     setKind(next);
-    const list = next === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
-    if (!list.includes(category as never)) {
-      setCategory(list[0]);
+    const nextList = categories.filter((c) => c.kind === next);
+    if (!nextList.some((c) => c.name === category)) {
+      setCategory(nextList[0]?.name ?? "");
     }
   };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const n = parseFloat(amount);
-    if (!n || n <= 0) return;
-    onSave({ amount: n, category, note: note.trim() || String(category), date, kind });
+    if (!n || n <= 0 || !category) return;
+    onSave({ amount: n, category, note: note.trim() || category, date, kind });
   };
+
+  const selectedColor = list.find((c) => c.name === category)?.color ?? "#2d2d2d";
 
   return (
     <Dialog open={!!expense} onOpenChange={(o) => !o && onClose()}>
@@ -80,6 +82,7 @@ export function EditTransactionDialog({
               <span className="font-serif text-lg">$</span>
               <input
                 type="number"
+                inputMode="decimal"
                 step="0.01"
                 required
                 value={amount}
@@ -109,17 +112,24 @@ export function EditTransactionDialog({
           </Row>
 
           <Row label="Category">
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
-              className="w-full bg-transparent border-b border-foreground/30 focus:border-foreground outline-none font-mono text-xs uppercase tracking-wider py-1"
-            >
-              {categoriesFor(kind).map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2 border-b border-foreground/30 focus-within:border-foreground py-1">
+              <span
+                aria-hidden
+                className="inline-block w-3 h-3 rounded-full shrink-0"
+                style={{ background: selectedColor }}
+              />
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full bg-transparent outline-none font-mono text-xs uppercase tracking-wider appearance-none"
+              >
+                {list.map((c) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </Row>
 
           <div className="flex justify-end gap-3 pt-3">
