@@ -27,20 +27,20 @@ function TransactionsPage() {
   );
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen lg:flex">
       <Sidebar />
       <main className="flex-1 min-w-0">
-        <header className="px-6 md:px-12 pt-10 pb-8 border-b border-foreground/20">
+        <header className="px-5 md:px-12 pt-8 md:pt-10 pb-6 md:pb-8 border-b border-foreground/20">
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
             Vol. II · Register
           </div>
-          <h2 className="font-serif text-5xl md:text-6xl mt-3 leading-none">Transactions</h2>
+          <h2 className="font-serif text-4xl md:text-6xl mt-3 leading-none">Transactions</h2>
           <p className="font-serif italic text-muted-foreground mt-3 max-w-xl">
-            Every entry, line by line. Hover to edit or strike through.
+            Every entry, line by line. Tap to edit or strike through.
           </p>
         </header>
 
-        <div className="px-6 md:px-12 py-8 space-y-8">
+        <div className="px-5 md:px-12 py-6 md:py-8 space-y-6 md:space-y-8">
           <AddExpense onAdd={add} />
 
           <div className="flex items-baseline gap-1 border border-foreground/30 w-fit">
@@ -68,3 +68,4 @@ function TransactionsPage() {
     </div>
   );
 }
+
