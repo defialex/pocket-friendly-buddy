@@ -190,6 +190,15 @@
 }
 
 @layer components {
+  .mobile-safe-header {
+    height: calc(4rem + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .mobile-safe-drawer {
+    top: calc(4rem + env(safe-area-inset-top, 0px));
+  }
+
   .bg-card {
     box-shadow:
       0 22px 70px oklch(0.32 0.02 70 / 0.075),

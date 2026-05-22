@@ -28,7 +28,7 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <header className="lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 pt-[env(safe-area-inset-top)] h-[calc(4rem+env(safe-area-inset-top))] border-b border-foreground/10 bg-sidebar/90 backdrop-blur-xl supports-[backdrop-filter]:bg-sidebar/75">
+      <header className="mobile-safe-header lg:hidden sticky top-0 z-50 flex items-center justify-between px-4 border-b border-foreground/10 bg-sidebar/95 backdrop-blur-xl supports-[backdrop-filter]:bg-sidebar/85">
         {currentBoardId ? (
           <Link
             to="/board/$boardId"
@@ -56,7 +56,7 @@ export function Sidebar() {
         <div className="lg:hidden fixed inset-0 z-40 bg-black/30" onClick={() => setOpen(false)} />
       )}
       <aside
-        className={`lg:hidden fixed top-[calc(4rem+env(safe-area-inset-top))] left-0 right-0 z-40 bg-sidebar/95 backdrop-blur-xl border-b border-foreground/10 transform transition-transform duration-200 ${
+        className={`mobile-safe-drawer lg:hidden fixed left-0 right-0 z-40 bg-sidebar/95 backdrop-blur-xl border-b border-foreground/10 transform transition-transform duration-200 ${
           open ? "translate-y-0" : "-translate-y-[120%]"
         }`}
       >
