@@ -1,28 +1,14 @@
-import {
-  formatMoney,
-  useCategories,
-  type Expense,
-  type TxKind,
-} from "@/lib/budget-store";
+import { formatValue, useCategories, type Expense } from "@/lib/budget-store";
 
-export function CategoryBreakdown({
-  expenses,
-  kind = "expense",
-}: {
-  expenses: Expense[];
-  kind?: TxKind;
-}) {
+export function CategoryBreakdown({ expenses }: { expenses: Expense[] }) {
   const { categories } = useCategories();
-  const cats = categories.filter((c) => c.kind === kind);
-  const filtered = expenses.filter((e) => e.kind === kind);
 
-  const totals = cats
+  const totals = categories
     .map((c) => ({
       category: c.name,
       color: c.color,
-      total: filtered
-        .filter((e) => e.category === c.name)
-        .reduce((s, e) => s + e.amount, 0),
+      measurementType: c.measurementType,
+      total: expenses.filter((e) => e.category === c.name).reduce((s, e) => s + e.value, 0),
     }))
     .filter((x) => x.total > 0)
     .sort((a, b) => b.total - a.total);
@@ -33,11 +19,9 @@ export function CategoryBreakdown({
   return (
     <section className="border border-foreground/20 bg-card p-5 md:p-6">
       <div className="flex items-baseline justify-between mb-5">
-        <h3 className="font-serif text-xl">
-          {kind === "income" ? "Income by Source" : "Spending by Category"}
-        </h3>
+        <h3 className="font-serif text-xl">Progress by Category</h3>
         <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          {kind}
+          tracked
         </span>
       </div>
       <div className="rule mb-5" />
@@ -61,7 +45,7 @@ export function CategoryBreakdown({
                     <span className="truncate">{t.category}</span>
                   </span>
                   <span className="font-mono text-sm tabular-nums whitespace-nowrap">
-                    {formatMoney(t.total)}
+                    {formatValue(t.total, t.measurementType)}
                     <span className="text-muted-foreground text-[10px] ml-2">{share}%</span>
                   </span>
                 </div>

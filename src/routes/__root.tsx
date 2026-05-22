@@ -72,17 +72,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "The Ledger" },
-      { name: "description", content: "A quiet personal budget journal." },
-      { name: "author", content: "The Ledger" },
-      { property: "og:title", content: "The Ledger" },
-      { property: "og:description", content: "A quiet personal budget journal." },
+      { title: "Odin's Eye" },
+      { name: "description", content: "A calm accountability control panel." },
+      { name: "author", content: "Odin's Eye" },
+      { property: "og:title", content: "Odin's Eye" },
+      { property: "og:description", content: "A calm accountability control panel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "The Ledger" },
-      { name: "twitter:description", content: "A quiet personal budget journal." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f6db8e67-17ad-4623-ab73-ea138892e45f/id-preview-1818212e--38f4c118-8735-42da-990d-c302c5334e7a.lovable.app-1779283245387.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f6db8e67-17ad-4623-ab73-ea138892e45f/id-preview-1818212e--38f4c118-8735-42da-990d-c302c5334e7a.lovable.app-1779283245387.png" },
+      { name: "twitter:title", content: "Odin's Eye" },
+      { name: "twitter:description", content: "A calm accountability control panel." },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f6db8e67-17ad-4623-ab73-ea138892e45f/id-preview-1818212e--38f4c118-8735-42da-990d-c302c5334e7a.lovable.app-1779283245387.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f6db8e67-17ad-4623-ab73-ea138892e45f/id-preview-1818212e--38f4c118-8735-42da-990d-c302c5334e7a.lovable.app-1779283245387.png",
+      },
     ],
     links: [
       {

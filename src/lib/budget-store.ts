@@ -10,24 +10,39 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
-export type TxKind = "expense" | "income";
-export type Category = string;
+export const DEFAULT_BOARD_ID = "main";
+export const CURRENT_BOARD_ID_KEY = "ledger.currentBoardId";
+const CURRENT_BOARD_EVENT = "ledger:current-board";
+
+export type MeasurementType = "hours" | "times" | "euro";
+
+export type Board = {
+  id: string;
+  name: string;
+  createdAt: string;
+};
 
 export type CategoryDef = {
   id: string;
+  boardId: string;
   name: string;
   color: string;
-  kind: TxKind;
+  measurementType: MeasurementType;
+  weeklyGoal?: number;
+  monthlyGoal?: number;
 };
 
-export type Expense = {
+export type Entry = {
   id: string;
-  amount: number;
-  category: Category;
+  boardId: string;
+  value: number;
+  category: string;
   note: string;
   date: string;
-  kind: TxKind;
+  measurementType?: MeasurementType;
 };
+
+export type Expense = Entry;
 
 export const COLOR_PALETTE = [
   "#2d2d2d",
@@ -44,167 +59,323 @@ export const COLOR_PALETTE = [
   "#574b90",
 ];
 
-const DEFAULT_EXPENSE: Array<[string, string]> = [
-  ["Groceries", "#87a878"],
-  ["Dining", "#c4654a"],
-  ["Transport", "#2d8a9e"],
-  ["Housing", "#1e3a5f"],
-  ["Utilities", "#574b90"],
-  ["Entertainment", "#c44569"],
-  ["Health", "#9b4423"],
-  ["Shopping", "#d4a574"],
-  ["Other", "#2d2d2d"],
-];
-
-const DEFAULT_INCOME: Array<[string, string]> = [
-  ["Salary", "#4a6741"],
-  ["Freelance", "#2d8a9e"],
-  ["Investments", "#8b6f47"],
-  ["Gifts", "#c44569"],
-  ["Refunds", "#d4a574"],
-  ["Other Income", "#2d2d2d"],
-];
-
-export const EXPENSE_CATEGORIES: string[] = DEFAULT_EXPENSE.map(([n]) => n);
-export const INCOME_CATEGORIES: string[] = DEFAULT_INCOME.map(([n]) => n);
-export const CATEGORIES = EXPENSE_CATEGORIES;
-
-const expensesRef = collection(db, "expenses");
+const boardsRef = collection(db, "boards");
+const entriesRef = collection(db, "expenses");
 const categoriesRef = collection(db, "categories");
 
-async function seedDefaultCategoriesOnce() {
-  const defaults: CategoryDef[] = [
-    ...DEFAULT_EXPENSE.map(([name, color]) => ({
-      id: `expense-${name.toLowerCase().replaceAll(" ", "-")}`,
-      name,
-      color,
-      kind: "expense" as TxKind,
-    })),
-    ...DEFAULT_INCOME.map(([name, color]) => ({
-      id: `income-${name.toLowerCase().replaceAll(" ", "-")}`,
-      name,
-      color,
-      kind: "income" as TxKind,
-    })),
-  ];
+type FirestoreData = Record<string, unknown>;
 
-  await Promise.all(
-    defaults.map((cat) => setDoc(doc(db, "categories", cat.id), cat))
+function stringField(data: FirestoreData, key: string, fallback = "") {
+  const value = data[key];
+  return typeof value === "string" ? value : fallback;
+}
+
+function numberField(data: FirestoreData, key: string, fallback = 0) {
+  const value = data[key];
+  return typeof value === "number" ? value : fallback;
+}
+
+function measurementTypeField(
+  data: FirestoreData,
+  key: string,
+  fallback: MeasurementType = "times",
+): MeasurementType {
+  const value = data[key];
+  return value === "hours" || value === "times" || value === "euro" ? value : fallback;
+}
+
+function categoryFromDoc(id: string, data: FirestoreData): CategoryDef {
+  const weeklyGoal = data.weeklyGoal;
+  const monthlyGoal = data.monthlyGoal;
+
+  return {
+    id,
+    boardId: stringField(data, "boardId", DEFAULT_BOARD_ID),
+    name: stringField(data, "name"),
+    color: stringField(data, "color", "#2d2d2d"),
+    measurementType: measurementTypeField(data, "measurementType"),
+    weeklyGoal: weeklyGoal === undefined || weeklyGoal === null ? undefined : Number(weeklyGoal),
+    monthlyGoal:
+      monthlyGoal === undefined || monthlyGoal === null ? undefined : Number(monthlyGoal),
+  };
+}
+
+export function getCurrentBoardId() {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem(CURRENT_BOARD_ID_KEY) ?? "";
+}
+
+export function setCurrentBoardId(boardId: string) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(CURRENT_BOARD_ID_KEY, boardId);
+  window.dispatchEvent(new CustomEvent(CURRENT_BOARD_EVENT, { detail: boardId }));
+}
+
+export function useCurrentBoardId() {
+  const [boardId, setBoardId] = useState(() => getCurrentBoardId());
+
+  useEffect(() => {
+    const sync = () => setBoardId(getCurrentBoardId());
+    sync();
+
+    window.addEventListener("storage", sync);
+    window.addEventListener(CURRENT_BOARD_EVENT, sync);
+
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener(CURRENT_BOARD_EVENT, sync);
+    };
+  }, []);
+
+  return boardId;
+}
+
+export function slugifyBoardName(name: string) {
+  return (
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/ä/g, "ae")
+      .replace(/ö/g, "oe")
+      .replace(/ü/g, "ue")
+      .replace(/ß/g, "ss")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "board"
   );
 }
 
-export function useExpenses() {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+export function useBoards() {
+  const [boards, setBoards] = useState<Board[]>([]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(expensesRef, (snapshot) => {
-      const items = snapshot.docs.map((d) => ({
-        id: d.id,
-        ...(d.data() as Omit<Expense, "id">),
-      }));
+    const unsubscribe = onSnapshot(boardsRef, (snapshot) => {
+      const items = snapshot.docs.map((d) => {
+        const data = d.data();
+
+        return {
+          id: d.id,
+          name: stringField(data, "name", d.id),
+          createdAt: stringField(data, "createdAt"),
+        } as Board;
+      });
+
+      items.sort((a, b) => a.name.localeCompare(b.name));
+      setBoards(items);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const add = useCallback(async (name: string) => {
+    const cleanName = name.trim();
+    const id = slugifyBoardName(cleanName);
+
+    const board: Board = {
+      id,
+      name: cleanName,
+      createdAt: new Date().toISOString(),
+    };
+
+    await setDoc(doc(db, "boards", id), board);
+
+    return board;
+  }, []);
+
+  const remove = useCallback(async (id: string) => {
+    await deleteDoc(doc(db, "boards", id));
+  }, []);
+
+  const updateBoard = useCallback(async (id: string, patch: Partial<Omit<Board, "id">>) => {
+    await updateDoc(doc(db, "boards", id), patch);
+  }, []);
+
+  return {
+    boards,
+    add,
+    remove,
+    updateBoard,
+  };
+}
+
+export function useExpenses(boardId: string = DEFAULT_BOARD_ID) {
+  const [expenses, setExpenses] = useState<Entry[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(entriesRef, (snapshot) => {
+      const items = snapshot.docs
+        .map((d) => {
+          const data = d.data();
+
+          return {
+            id: d.id,
+            boardId: stringField(data, "boardId", DEFAULT_BOARD_ID),
+            value: numberField(data, "value", numberField(data, "amount")),
+            category: stringField(data, "category"),
+            note: stringField(data, "note"),
+            date: stringField(data, "date"),
+            measurementType: measurementTypeField(data, "measurementType"),
+          } as Entry;
+        })
+        .filter((entry) => entry.boardId === boardId);
 
       items.sort((a, b) => b.date.localeCompare(a.date));
       setExpenses(items);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [boardId]);
 
-  const add = useCallback(async (e: Omit<Expense, "id">) => {
-    await addDoc(expensesRef, e);
-  }, []);
+  const add = useCallback(
+    async (entry: Omit<Entry, "id" | "boardId">) => {
+      await addDoc(entriesRef, {
+        ...entry,
+        boardId,
+      });
+    },
+    [boardId],
+  );
 
   const remove = useCallback(async (id: string) => {
     await deleteDoc(doc(db, "expenses", id));
   }, []);
 
-  const update = useCallback(
-    async (id: string, patch: Partial<Omit<Expense, "id">>) => {
-      await updateDoc(doc(db, "expenses", id), patch);
-    },
-    []
-  );
+  const update = useCallback(async (id: string, patch: Partial<Omit<Entry, "id">>) => {
+    await updateDoc(doc(db, "expenses", id), patch);
+  }, []);
 
-  const renameCategoryRefs = useCallback(
-    async (kind: TxKind, oldName: string, newName: string) => {
-      if (oldName === newName) return;
-
-      const matching = expenses.filter(
-        (e) => e.kind === kind && e.category === oldName
-      );
-
-      await Promise.all(
-        matching.map((e) =>
-          updateDoc(doc(db, "expenses", e.id), { category: newName })
-        )
-      );
-    },
-    [expenses]
-  );
-
-  return { expenses, add, remove, update, renameCategoryRefs };
+  return {
+    expenses,
+    add,
+    remove,
+    update,
+  };
 }
 
-export function useCategories() {
+export function useCategories(boardId: string = DEFAULT_BOARD_ID) {
   const [categories, setCategories] = useState<CategoryDef[]>([]);
 
   useEffect(() => {
-const unsubscribe = onSnapshot(categoriesRef, async (snapshot) => {
-  const items = snapshot.docs.map((d) => ({
-    id: d.id,
-    ...(d.data() as Omit<CategoryDef, "id">),
-  }));
+    const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
+      const items = snapshot.docs
+        .map((d) => {
+          return categoryFromDoc(d.id, d.data());
+        })
+        .filter((category) => category.boardId === boardId);
 
-  setCategories(items);
-});
+      items.sort((a, b) => a.name.localeCompare(b.name));
+      setCategories(items);
+    });
+
     return () => unsubscribe();
-  }, []);
+  }, [boardId]);
 
   const add = useCallback(
-    async (kind: TxKind, name: string, color?: string) => {
-      const cleanName = name.trim();
+    async (
+      name: string,
+      measurementType: MeasurementType,
+      color?: string,
+      weeklyGoal?: number,
+      monthlyGoal?: number,
+    ) => {
       const newRef = doc(categoriesRef);
 
-      const c: CategoryDef = {
+      const category: CategoryDef = {
         id: newRef.id,
-        name: cleanName,
-        color: color || COLOR_PALETTE[categories.length % COLOR_PALETTE.length],
-        kind,
+        boardId,
+        name: name.trim(),
+        measurementType,
+        color: color || COLOR_PALETTE[0],
+        ...(weeklyGoal ? { weeklyGoal } : {}),
+        ...(monthlyGoal ? { monthlyGoal } : {}),
       };
 
-      await setDoc(newRef, c);
-      return c;
+      await setDoc(newRef, category);
+
+      return category;
     },
-    [categories.length]
+    [boardId],
   );
 
   const remove = useCallback(async (id: string) => {
     await deleteDoc(doc(db, "categories", id));
   }, []);
 
-  const rename = useCallback(async (id: string, name: string) => {
-    await updateDoc(doc(db, "categories", id), { name: name.trim() });
+  const updateCategory = useCallback(
+    async (id: string, patch: Partial<Omit<CategoryDef, "id">>) => {
+      await updateDoc(doc(db, "categories", id), patch);
+    },
+    [],
+  );
+
+  return {
+    categories,
+    add,
+    remove,
+    updateCategory,
+  };
+}
+
+export function useAllCategories() {
+  const [categories, setCategories] = useState<CategoryDef[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(categoriesRef, (snapshot) => {
+      const items = snapshot.docs.map((d) => categoryFromDoc(d.id, d.data()));
+
+      items.sort((a, b) => {
+        const boardOrder = a.boardId.localeCompare(b.boardId);
+        return boardOrder || a.name.localeCompare(b.name);
+      });
+
+      setCategories(items);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const recolor = useCallback(async (id: string, color: string) => {
-    await updateDoc(doc(db, "categories", id), { color });
-  }, []);
-
-  return { categories, add, remove, rename, recolor };
+  return { categories };
 }
 
-export function formatMoney(n: number) {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+export function formatValue(value: number | undefined | null, measurementType?: MeasurementType) {
+  const safeValue = Number(value ?? 0);
+
+  if (measurementType === "euro") {
+    return safeValue.toLocaleString("de-DE", {
+      style: "currency",
+      currency: "EUR",
+    });
+  }
+
+  if (measurementType === "hours") {
+    return `${safeValue.toLocaleString("de-DE")} h`;
+  }
+
+  if (measurementType === "times") {
+    return `${safeValue.toLocaleString("de-DE")}×`;
+  }
+
+  return safeValue.toLocaleString("de-DE");
 }
 
-export function categoriesFor(kind: TxKind): string[] {
-  return kind === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+export function formatMoney(value: number) {
+  return formatValue(value, "euro");
 }
 
-export function colorForCategory(
+export function colorForCategory(categories: CategoryDef[], name: string) {
+  return categories.find((category) => category.name === name)?.color ?? "#2d2d2d";
+}
+
+export function measurementTypeForCategory(
   categories: CategoryDef[],
   name: string,
-  kind: TxKind
-): string {
-  return categories.find((c) => c.kind === kind && c.name === name)?.color ?? "#2d2d2d";
+): MeasurementType {
+  return categories.find((category) => category.name === name)?.measurementType ?? "times";
+}
+
+export function labelForMeasurementType(type: MeasurementType) {
+  if (type === "hours") return "Hours";
+  if (type === "times") return "Times";
+  if (type === "euro") return "Euro";
+
+  return type;
 }

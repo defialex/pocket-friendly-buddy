@@ -7,7 +7,7 @@ const firebaseConfig = {
   projectId: "ledger-3daf2",
   storageBucket: "ledger-3daf2.firebasestorage.app",
   messagingSenderId: "344588483924",
-  appId: "1:344588483924:web:4927d8f06dca483f15dcc1"
+  appId: "1:344588483924:web:4927d8f06dca483f15dcc1",
 };
 
 const app = initializeApp(firebaseConfig);

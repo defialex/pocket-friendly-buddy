@@ -1,25 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
-import { useExpenses, formatMoney, type Expense } from "@/lib/budget-store";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { useCategories, useExpenses, formatValue, type Expense } from "@/lib/budget-store";
 import { Sidebar } from "@/components/budget/Sidebar";
 import { CategoryBreakdown } from "@/components/budget/CategoryBreakdown";
 
 export const Route = createFileRoute("/reports")({
   head: () => ({
     meta: [
-      { title: "Reports — The Ledger" },
+      { title: "Reports — Odin's Eye" },
       {
         name: "description",
-        content: "Monthly income, spending, and net savings reports.",
+        content: "Monthly accountability and consistency reports.",
       },
     ],
   }),
@@ -28,37 +20,44 @@ export const Route = createFileRoute("/reports")({
 
 function ReportsPage() {
   const { expenses } = useExpenses();
+  const { categories } = useCategories();
 
   const monthly = useMemo(() => buildMonthly(expenses), [expenses]);
-  const totalIncome = expenses.filter((e) => e.kind === "income").reduce((s, e) => s + e.amount, 0);
-  const totalSpent = expenses.filter((e) => e.kind === "expense").reduce((s, e) => s + e.amount, 0);
-  const net = totalIncome - totalSpent;
-  const savingsRate = totalIncome > 0 ? Math.round((net / totalIncome) * 100) : 0;
+  const now = new Date();
+  const currentMonth = now.toISOString().slice(0, 7);
+  const startOfWeek = new Date(now);
+  startOfWeek.setHours(0, 0, 0, 0);
+  startOfWeek.setDate(now.getDate() - now.getDay() + 1);
 
   const summary = [
-    { label: "Total income", value: formatMoney(totalIncome) },
-    { label: "Total spent", value: formatMoney(totalSpent) },
-    { label: "Net", value: (net >= 0 ? "+" : "−") + formatMoney(Math.abs(net)) },
-    { label: "Savings rate", value: `${savingsRate}%` },
+    { label: "Total entries", value: String(expenses.length) },
+    { label: "Categories", value: String(categories.length) },
+    {
+      label: "This month",
+      value: String(expenses.filter((e) => e.date.startsWith(currentMonth)).length),
+    },
+    {
+      label: "This week",
+      value: String(expenses.filter((e) => new Date(e.date) >= startOfWeek).length),
+    },
   ];
 
   return (
     <div className="min-h-screen lg:flex">
       <Sidebar />
       <main className="flex-1 min-w-0">
-        <header className="px-5 md:px-12 pt-8 md:pt-10 pb-6 md:pb-8 border-b border-foreground/20">
+        <header className="px-5 md:px-12 pt-8 md:pt-14 pb-7 md:pb-10 border-b border-foreground/10">
           <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
-            Vol. III · Almanack
+            Pattern Review
           </div>
-          <h2 className="font-serif text-4xl md:text-6xl mt-3 leading-none">Reports</h2>
-          <p className="font-serif italic text-muted-foreground mt-3 max-w-xl">
-            A panoramic view of money as it comes and goes through the months.
+          <h2 className="font-serif text-5xl md:text-7xl mt-4 leading-[0.92]">Reports</h2>
+          <p className="text-muted-foreground mt-5 max-w-2xl text-base md:text-lg leading-8">
+            A panoramic view of the work, learning, sport, and commitments you have recorded.
           </p>
         </header>
 
         <div className="px-5 md:px-12 py-6 md:py-8 space-y-6 md:space-y-8">
-
-          <section className="grid grid-cols-2 md:grid-cols-4 border border-foreground/20 bg-card divide-x divide-foreground/15">
+          <section className="grid grid-cols-2 md:grid-cols-4 border border-foreground/10 bg-card divide-x divide-foreground/10">
             {summary.map((s) => (
               <div key={s.label} className="p-6">
                 <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -69,9 +68,9 @@ function ReportsPage() {
             ))}
           </section>
 
-          <section className="border border-foreground/20 bg-card p-6">
+          <section className="border border-foreground/10 bg-card p-6">
             <div className="flex items-baseline justify-between mb-5">
-              <h3 className="font-serif text-xl">Income vs. Expense · Last 6 Months</h3>
+              <h3 className="font-serif text-xl">Recorded Activity · Last 6 Months</h3>
               <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
                 monthly
               </span>
@@ -91,7 +90,7 @@ function ReportsPage() {
                     tick={{ fontFamily: "var(--font-mono)", fontSize: 11, fill: "var(--ink)" }}
                     axisLine={false}
                     tickLine={false}
-                    tickFormatter={(v) => `$${v}`}
+                    tickFormatter={(v) => String(v)}
                   />
                   <Tooltip
                     cursor={{ fill: "var(--ink-deep)", fillOpacity: 0.04 }}
@@ -102,18 +101,20 @@ function ReportsPage() {
                       fontFamily: "var(--font-mono)",
                       fontSize: 12,
                     }}
-                    formatter={(v: number, name: string) => [formatMoney(v), name]}
+                    formatter={(v: number, name: string) => [
+                      name === "Entries" ? String(v) : formatValue(v),
+                      name,
+                    ]}
                   />
-                  <Bar dataKey="income" fill="var(--ink-deep)" name="Income" />
-                  <Bar dataKey="expense" fill="var(--ink)" fillOpacity={0.45} name="Expense" />
+                  <Bar dataKey="entries" fill="var(--ink-deep)" name="Entries" />
+                  <Bar dataKey="value" fill="var(--ink)" fillOpacity={0.45} name="Value" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </section>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-            <CategoryBreakdown expenses={expenses} kind="expense" />
-            <CategoryBreakdown expenses={expenses} kind="income" />
+            <CategoryBreakdown expenses={expenses} />
           </div>
         </div>
       </main>
@@ -123,22 +124,21 @@ function ReportsPage() {
 
 function buildMonthly(expenses: Expense[]) {
   const now = new Date();
-  const months: { key: string; label: string; income: number; expense: number }[] = [];
+  const months: { key: string; label: string; entries: number; value: number }[] = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const label = d.toLocaleDateString("en-US", { month: "short" });
-    months.push({ key, label, income: 0, expense: 0 });
+    months.push({ key, label, entries: 0, value: 0 });
   }
   for (const e of expenses) {
     const m = months.find((x) => e.date.startsWith(x.key));
     if (!m) continue;
-    if (e.kind === "income") m.income += e.amount;
-    else m.expense += e.amount;
+    m.entries += 1;
+    m.value += e.value;
   }
   return months.map((m) => ({
     ...m,
-    income: Math.round(m.income * 100) / 100,
-    expense: Math.round(m.expense * 100) / 100,
+    value: Math.round(m.value * 100) / 100,
   }));
 }

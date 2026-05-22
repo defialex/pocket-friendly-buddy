@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
-  formatMoney,
+  DEFAULT_BOARD_ID,
+  formatValue,
   useCategories,
   colorForCategory,
   type Expense,
@@ -11,21 +12,23 @@ export function TransactionList({
   expenses,
   onRemove,
   onUpdate,
+  boardId = DEFAULT_BOARD_ID,
   title = "Recent Entries",
 }: {
   expenses: Expense[];
   onRemove: (id: string) => void;
   onUpdate: (id: string, patch: Partial<Omit<Expense, "id">>) => void;
+  boardId?: string;
   title?: string;
 }) {
-  const { categories } = useCategories();
+  const { categories } = useCategories(boardId);
   const [editing, setEditing] = useState<Expense | null>(null);
   const sorted = [...expenses].sort((a, b) => b.date.localeCompare(a.date));
 
   return (
-    <section className="border border-foreground/20 bg-card p-5 md:p-6">
+    <section className="border border-foreground/10 bg-card p-5 md:p-6">
       <div className="flex items-baseline justify-between mb-5">
-        <h3 className="font-serif text-xl">{title}</h3>
+        <h3 className="font-serif text-2xl">{title}</h3>
         <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           {sorted.length} recorded
         </span>
@@ -39,13 +42,9 @@ export function TransactionList({
       ) : (
         <ul className="divide-y divide-foreground/10">
           {sorted.map((e) => {
-            const isIncome = e.kind === "income";
-            const color = colorForCategory(categories, e.category, e.kind);
+            const color = colorForCategory(categories, e.category);
             return (
-              <li
-                key={e.id}
-                className="flex items-start gap-3 py-3 group"
-              >
+              <li key={e.id} className="flex items-start gap-3 py-4 group">
                 <span
                   aria-hidden
                   className="mt-2 inline-block w-2.5 h-2.5 rounded-full shrink-0"
@@ -53,18 +52,17 @@ export function TransactionList({
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
-                    <div className="font-serif text-base truncate">{e.note}</div>
-                    <span className="font-mono text-base tabular-nums whitespace-nowrap">
-                      {isIncome ? "+" : "−"}
-                      {formatMoney(e.amount)}
+                    <div className="font-serif text-xl truncate">{e.category}</div>
+                    <span className="font-sans font-semibold text-base tabular-nums whitespace-nowrap">
+                      {formatValue(e.value, e.measurementType)}
                     </span>
                   </div>
                   <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5 flex items-center justify-between gap-2 flex-wrap">
                     <span className="truncate">
-                      {e.category}
-                      <span className="ml-2">
-                        · {new Date(e.date).toLocaleDateString("en-US", { month: "short", day: "2-digit" })}
-                      </span>
+                      {new Date(e.date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "2-digit",
+                      })}
                     </span>
                     <span className="flex items-center gap-3 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
@@ -92,6 +90,7 @@ export function TransactionList({
 
       <EditTransactionDialog
         expense={editing}
+        boardId={boardId}
         onClose={() => setEditing(null)}
         onSave={(patch) => {
           if (editing) onUpdate(editing.id, patch);
