@@ -60,8 +60,8 @@ export function StatStrip({
   });
 
   return (
-    <section className="border border-foreground/10 bg-card overflow-hidden">
-      <div className="divide-y divide-foreground/10">
+    <section className="md:border md:border-foreground/10 md:bg-card md:overflow-hidden">
+      <div className="space-y-4 md:space-y-0 md:divide-y md:divide-foreground/10">
         <div className="hidden md:grid grid-cols-[1.3fr_1fr_1fr] px-6 md:px-10 py-4 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground bg-secondary/35">
           <div>Category</div>
           <div>This Week</div>
@@ -71,7 +71,7 @@ export function StatStrip({
         {grouped.map((category, index) => (
           <div
             key={category.id}
-            className="grid md:grid-cols-[1.3fr_1fr_1fr] gap-5 px-6 md:px-10 py-6 items-center"
+            className="grid md:grid-cols-[1.3fr_1fr_1fr] gap-5 px-6 md:px-10 py-6 items-center border border-foreground/10 bg-card md:border-0 md:bg-transparent"
           >
             <div className="flex items-center gap-4 min-w-0">
               <span
