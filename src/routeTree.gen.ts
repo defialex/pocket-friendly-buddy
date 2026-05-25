@@ -15,6 +15,7 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as BoardsRouteImport } from './routes/boards'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BoardBoardIdRouteImport } from './routes/board.$boardId'
+import { Route as BoardBoardIdReportsRouteImport } from './routes/board.$boardId.reports'
 import { Route as BoardBoardIdCategoriesRouteImport } from './routes/board.$boardId.categories'
 
 const TransactionsRoute = TransactionsRouteImport.update({
@@ -47,6 +48,11 @@ const BoardBoardIdRoute = BoardBoardIdRouteImport.update({
   path: '/board/$boardId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BoardBoardIdReportsRoute = BoardBoardIdReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => BoardBoardIdRoute,
+} as any)
 const BoardBoardIdCategoriesRoute = BoardBoardIdCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/transactions': typeof TransactionsRoute
   '/board/$boardId': typeof BoardBoardIdRouteWithChildren
   '/board/$boardId/categories': typeof BoardBoardIdCategoriesRoute
+  '/board/$boardId/reports': typeof BoardBoardIdReportsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +77,7 @@ export interface FileRoutesByTo {
   '/transactions': typeof TransactionsRoute
   '/board/$boardId': typeof BoardBoardIdRouteWithChildren
   '/board/$boardId/categories': typeof BoardBoardIdCategoriesRoute
+  '/board/$boardId/reports': typeof BoardBoardIdReportsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   '/transactions': typeof TransactionsRoute
   '/board/$boardId': typeof BoardBoardIdRouteWithChildren
   '/board/$boardId/categories': typeof BoardBoardIdCategoriesRoute
+  '/board/$boardId/reports': typeof BoardBoardIdReportsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/board/$boardId'
     | '/board/$boardId/categories'
+    | '/board/$boardId/reports'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/board/$boardId'
     | '/board/$boardId/categories'
+    | '/board/$boardId/reports'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/board/$boardId'
     | '/board/$boardId/categories'
+    | '/board/$boardId/reports'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -164,6 +176,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BoardBoardIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/board/$boardId/reports': {
+      id: '/board/$boardId/reports'
+      path: '/reports'
+      fullPath: '/board/$boardId/reports'
+      preLoaderRoute: typeof BoardBoardIdReportsRouteImport
+      parentRoute: typeof BoardBoardIdRoute
+    }
     '/board/$boardId/categories': {
       id: '/board/$boardId/categories'
       path: '/categories'
@@ -176,10 +195,12 @@ declare module '@tanstack/react-router' {
 
 interface BoardBoardIdRouteChildren {
   BoardBoardIdCategoriesRoute: typeof BoardBoardIdCategoriesRoute
+  BoardBoardIdReportsRoute: typeof BoardBoardIdReportsRoute
 }
 
 const BoardBoardIdRouteChildren: BoardBoardIdRouteChildren = {
   BoardBoardIdCategoriesRoute: BoardBoardIdCategoriesRoute,
+  BoardBoardIdReportsRoute: BoardBoardIdReportsRoute,
 }
 
 const BoardBoardIdRouteWithChildren = BoardBoardIdRoute._addFileChildren(

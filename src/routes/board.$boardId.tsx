@@ -22,7 +22,7 @@ function BoardPage() {
     setCurrentBoardId(boardId);
   }, [boardId]);
 
-  if (location.pathname.endsWith("/categories")) {
+  if (location.pathname.endsWith("/categories") || location.pathname.endsWith("/reports")) {
     return <Outlet />;
   }
 
@@ -55,12 +55,13 @@ function BoardPage() {
             >
               Manage Categories
             </Link>
-            <a
-              href="#new-entry"
-              className="font-mono text-[10px] uppercase tracking-[0.2em] px-5 py-3 bg-foreground text-background hover:bg-foreground/85 transition-colors"
+            <Link
+              to="/board/$boardId/reports"
+              params={{ boardId }}
+              className="font-mono text-[10px] uppercase tracking-[0.2em] px-5 py-3 border border-foreground/20 bg-card/70 hover:border-foreground/40 transition-colors"
             >
-              Add Entry
-            </a>
+              Reports
+            </Link>
           </div>
         </header>
 
