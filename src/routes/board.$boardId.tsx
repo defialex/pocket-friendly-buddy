@@ -43,8 +43,7 @@ function BoardPage() {
           </h2>
 
           <p className="text-muted-foreground mt-5 max-w-2xl text-base sm:text-lg leading-8">
-            A calm place to record the actions that build your identity, one consistent signal at a
-            time.
+            Do your Habits match your ambitions?
           </p>
 
           <div className="mt-7 flex flex-wrap gap-3">

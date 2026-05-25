@@ -148,7 +148,7 @@ function BoardReportsPage() {
               <div>Goal</div>
             </div>
 
-            <div className="divide-y divide-foreground/10">
+            <div className="space-y-4 p-4 md:p-5">
               {rows.map((row) => (
                 <ReportRow key={row.category.id} row={row} />
               ))}
@@ -170,7 +170,7 @@ function ReportRow({ row }: { row: CategoryReportRow }) {
   const safeProgress = Math.max(0, Math.min(row.progress ?? 0, 100));
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[1.25fr_0.9fr_1fr_1fr] gap-5 px-6 md:px-10 py-6 items-center">
+    <div className="grid grid-cols-1 md:grid-cols-[1.25fr_0.9fr_1fr_1fr] gap-5 px-6 md:px-10 py-6 items-center border border-foreground/10 bg-card">
       <div className="flex items-center gap-4 min-w-0">
         <span
           className="w-3 h-3 rounded-full shrink-0"
@@ -178,7 +178,7 @@ function ReportRow({ row }: { row: CategoryReportRow }) {
         />
 
         <div className="min-w-0">
-          <div className="font-serif text-2xl truncate text-foreground">{row.category.name}</div>
+          <div className="font-serif text-xl truncate text-foreground">{row.category.name}</div>
           <div className="md:hidden mt-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             {labelForMeasurementType(row.category.measurementType)}
           </div>
