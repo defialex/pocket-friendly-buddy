@@ -140,7 +140,7 @@ function BoardReportsPage() {
             </div>
           </section>
 
-          <section className="border border-foreground/10 bg-card">
+          <section className="md:border md:border-foreground/10 md:bg-card">
             <div className="hidden md:grid grid-cols-[1.25fr_0.9fr_1fr_1fr] gap-5 px-6 md:px-10 py-4 font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground bg-secondary/35">
               <div>Category</div>
               <div>Type</div>
@@ -148,7 +148,7 @@ function BoardReportsPage() {
               <div>Goal</div>
             </div>
 
-            <div className="space-y-4 p-4 md:p-5">
+            <div className="space-y-4 md:p-5">
               {rows.map((row) => (
                 <ReportRow key={row.category.id} row={row} />
               ))}
