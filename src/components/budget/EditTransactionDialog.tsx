@@ -106,6 +106,8 @@ export function EditTransactionDialog({
               {measurementType === "hours" && <span className="font-serif text-lg">h</span>}
 
               {measurementType === "times" && <span className="font-serif text-lg">×</span>}
+
+              {measurementType === "km" && <span className="font-serif text-lg">km</span>}
             </div>
 
             <div className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">

@@ -5,6 +5,7 @@ import {
   measurementTypeForCategory,
   useCategories,
   type Expense,
+  type MeasurementType,
 } from "@/lib/budget-store";
 
 export function StatStrip({
@@ -133,7 +134,7 @@ function ProgressCell({
   value: number;
   goal?: number;
   progress?: number;
-  measurementType: "hours" | "times" | "euro";
+  measurementType: MeasurementType;
   accentColor: string;
   delayMs?: number;
 }) {

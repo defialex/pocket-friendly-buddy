@@ -14,7 +14,7 @@ export const DEFAULT_BOARD_ID = "main";
 export const CURRENT_BOARD_ID_KEY = "ledger.currentBoardId";
 const CURRENT_BOARD_EVENT = "ledger:current-board";
 
-export type MeasurementType = "hours" | "times" | "euro";
+export type MeasurementType = "hours" | "times" | "euro" | "km";
 
 export type Board = {
   id: string;
@@ -81,7 +81,9 @@ function measurementTypeField(
   fallback: MeasurementType = "times",
 ): MeasurementType {
   const value = data[key];
-  return value === "hours" || value === "times" || value === "euro" ? value : fallback;
+  return value === "hours" || value === "times" || value === "euro" || value === "km"
+    ? value
+    : fallback;
 }
 
 function categoryFromDoc(id: string, data: FirestoreData): CategoryDef {
@@ -354,6 +356,10 @@ export function formatValue(value: number | undefined | null, measurementType?: 
     return `${safeValue.toLocaleString("de-DE")}×`;
   }
 
+  if (measurementType === "km") {
+    return `${safeValue.toLocaleString("de-DE")} km`;
+  }
+
   return safeValue.toLocaleString("de-DE");
 }
 
@@ -376,6 +382,7 @@ export function labelForMeasurementType(type: MeasurementType) {
   if (type === "hours") return "Hours";
   if (type === "times") return "Times";
   if (type === "euro") return "Euro";
+  if (type === "km") return "Kilometres / km";
 
   return type;
 }

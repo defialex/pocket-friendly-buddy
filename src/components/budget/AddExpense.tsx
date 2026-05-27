@@ -58,11 +58,19 @@ export function AddExpense({
 
   const selectedColor = selectedCategory?.color ?? "#2d2d2d";
 
-  const valueLabel =
-    measurementType === "hours" ? "Hours" : measurementType === "times" ? "Times" : "Euro";
+  const valueLabel = labelForMeasurementType(measurementType);
 
   const valuePrefix = measurementType === "euro" ? "€" : "";
-  const valueSuffix = measurementType === "hours" ? "h" : measurementType === "times" ? "×" : "";
+  const valueSuffix =
+    measurementType === "hours"
+      ? "h"
+      : measurementType === "times"
+        ? "×"
+        : measurementType === "km"
+          ? "km"
+          : "";
+  const valuePlaceholder =
+    measurementType === "euro" ? "0.00" : measurementType === "km" ? "12.5" : "0";
 
   return (
     <form
@@ -93,7 +101,7 @@ export function AddExpense({
                 required
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder={measurementType === "euro" ? "0.00" : "0"}
+                placeholder={valuePlaceholder}
                 className="w-full bg-transparent outline-none font-sans font-semibold text-5xl md:text-6xl leading-none placeholder:text-muted-foreground/35 tabular-nums"
               />
 

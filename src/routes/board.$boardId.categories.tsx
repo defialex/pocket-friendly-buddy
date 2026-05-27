@@ -154,6 +154,7 @@ function CategoryCreator({
         <option value="hours">Hours</option>
         <option value="times">Times</option>
         <option value="euro">Euro</option>
+        <option value="km">Kilometres / km</option>
       </select>
 
       <input
@@ -233,6 +234,7 @@ function CategoryRow({
           <option value="hours">Hours</option>
           <option value="times">Times</option>
           <option value="euro">Euro</option>
+          <option value="km">Kilometres / km</option>
         </select>
 
         <input
