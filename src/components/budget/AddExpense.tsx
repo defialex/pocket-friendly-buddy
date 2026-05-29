@@ -8,6 +8,15 @@ import {
   DEFAULT_BOARD_ID,
 } from "@/lib/budget-store";
 
+function todayDateInputValue() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
 export function AddExpense({
   onAdd,
   boardId = DEFAULT_BOARD_ID,
@@ -19,7 +28,7 @@ export function AddExpense({
 
   const [value, setValue] = useState("");
   const [category, setCategory] = useState<string>("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(todayDateInputValue);
 
   const selectedCategory = useMemo(
     () => categories.find((c) => c.name === category),
@@ -54,6 +63,7 @@ export function AddExpense({
     });
 
     setValue("");
+    setDate(todayDateInputValue());
   };
 
   const selectedColor = selectedCategory?.color ?? "#2d2d2d";

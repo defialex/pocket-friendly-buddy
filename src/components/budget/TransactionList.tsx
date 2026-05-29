@@ -4,6 +4,7 @@ import {
   formatValue,
   useCategories,
   colorForCategory,
+  sortEntriesNewestFirst,
   type Expense,
 } from "@/lib/budget-store";
 import { EditTransactionDialog } from "./EditTransactionDialog";
@@ -23,7 +24,7 @@ export function TransactionList({
 }) {
   const { categories } = useCategories(boardId);
   const [editing, setEditing] = useState<Expense | null>(null);
-  const sorted = [...expenses].sort((a, b) => b.date.localeCompare(a.date));
+  const sorted = [...expenses].sort(sortEntriesNewestFirst);
 
   return (
     <section className="border border-foreground/10 bg-card p-5 md:p-6">

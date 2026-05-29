@@ -39,6 +39,7 @@ export type Entry = {
   category: string;
   note: string;
   date: string;
+  createdAt?: string;
   measurementType?: MeasurementType;
 };
 
@@ -84,6 +85,13 @@ function measurementTypeField(
   return value === "hours" || value === "times" || value === "euro" || value === "km"
     ? value
     : fallback;
+}
+
+export function sortEntriesNewestFirst(a: Entry, b: Entry) {
+  const dateOrder = b.date.localeCompare(a.date);
+  if (dateOrder !== 0) return dateOrder;
+
+  return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
 }
 
 function categoryFromDoc(id: string, data: FirestoreData): CategoryDef {
@@ -215,12 +223,13 @@ export function useExpenses(boardId: string = DEFAULT_BOARD_ID) {
             category: stringField(data, "category"),
             note: stringField(data, "note"),
             date: stringField(data, "date"),
+            createdAt: stringField(data, "createdAt") || undefined,
             measurementType: measurementTypeField(data, "measurementType"),
           } as Entry;
         })
         .filter((entry) => entry.boardId === boardId);
 
-      items.sort((a, b) => b.date.localeCompare(a.date));
+      items.sort(sortEntriesNewestFirst);
       setExpenses(items);
     });
 
@@ -232,6 +241,7 @@ export function useExpenses(boardId: string = DEFAULT_BOARD_ID) {
       await addDoc(entriesRef, {
         ...entry,
         boardId,
+        createdAt: entry.createdAt ?? new Date().toISOString(),
       });
     },
     [boardId],
