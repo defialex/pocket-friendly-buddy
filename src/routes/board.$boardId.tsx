@@ -1,5 +1,10 @@
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
-import { setCurrentBoardId, useBoards, useExpenses } from "@/lib/budget-store";
+import {
+  setCurrentBoardId,
+  sortEntriesNewestFirst,
+  useBoards,
+  useExpenses,
+} from "@/lib/budget-store";
 import { useEffect } from "react";
 import { Sidebar } from "@/components/budget/Sidebar";
 import { StatStrip } from "@/components/budget/StatStrip";
@@ -26,7 +31,12 @@ function BoardPage() {
     return <Outlet />;
   }
 
-  const recent = [...entries].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+  const recent = [...entries].sort(sortEntriesNewestFirst).slice(0, 8);
+
+  const actionClass =
+    "inline-flex min-h-12 items-center justify-center border px-5 py-3 text-center font-mono text-[10px] uppercase tracking-[0.2em] transition-colors";
+  const primaryActionClass = `${actionClass} border-foreground bg-foreground text-background hover:bg-foreground/85`;
+  const secondaryActionClass = `${actionClass} border-foreground/20 bg-card/70 text-foreground hover:border-foreground/40`;
 
   return (
     <div className="min-h-screen lg:flex">
@@ -45,24 +55,32 @@ function BoardPage() {
           <p className="text-muted-foreground mt-5 max-w-2xl text-base sm:text-lg leading-8">
             Do your Habits match your ambitions?
           </p>
+        </header>
 
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link
-              to="/board/$boardId/categories"
-              params={{ boardId }}
-              className="font-mono text-[10px] uppercase tracking-[0.2em] px-5 py-3 border border-foreground/20 bg-card/70 hover:border-foreground/40 transition-colors"
-            >
-              Manage Categories
-            </Link>
+        <nav
+          aria-label="Board actions"
+          className="border-b border-foreground/10 px-5 py-4 sm:px-7 md:px-12"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <a href="#new-entry" className={primaryActionClass}>
+              Record Entry
+            </a>
             <Link
               to="/board/$boardId/reports"
               params={{ boardId }}
-              className="font-mono text-[10px] uppercase tracking-[0.2em] px-5 py-3 border border-foreground/20 bg-card/70 hover:border-foreground/40 transition-colors"
+              className={secondaryActionClass}
             >
               Reports
             </Link>
+            <Link
+              to="/board/$boardId/categories"
+              params={{ boardId }}
+              className={secondaryActionClass}
+            >
+              Manage Categories
+            </Link>
           </div>
-        </header>
+        </nav>
 
         <div className="px-5 sm:px-7 md:px-12 py-6 sm:py-8 md:py-10 space-y-6 sm:space-y-7 md:space-y-9 max-w-7xl">
           <StatStrip expenses={entries} boardId={boardId} />
