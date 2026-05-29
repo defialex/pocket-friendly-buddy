@@ -34,7 +34,7 @@ function BoardPage() {
   const recent = [...entries].sort(sortEntriesNewestFirst).slice(0, 8);
 
   const actionClass =
-    "inline-flex min-h-9 items-center justify-center border px-3.5 py-2 text-center font-mono text-[9px] uppercase tracking-[0.18em] transition-colors";
+    "inline-flex min-h-8 shrink items-center justify-center whitespace-nowrap border px-2 py-1.5 text-center font-mono text-[8px] uppercase tracking-[0.12em] transition-colors sm:min-h-9 sm:px-3.5 sm:py-2 sm:text-[9px] sm:tracking-[0.18em]";
   const primaryActionClass = `${actionClass} border-foreground bg-foreground text-background hover:bg-foreground/85`;
   const secondaryActionClass = `${actionClass} border-foreground/20 bg-card/70 text-foreground hover:border-foreground/40`;
 
@@ -59,9 +59,9 @@ function BoardPage() {
 
         <nav
           aria-label="Board actions"
-          className="border-b border-foreground/10 px-5 py-3 sm:px-7 md:px-12"
+          className="border-b border-foreground/10 px-4 py-3 sm:px-7 md:px-12"
         >
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
+          <div className="flex flex-nowrap items-center gap-1.5 sm:gap-2.5">
             <a href="#new-entry" className={primaryActionClass}>
               Record Entry
             </a>
